@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elixir Haven — Fragrance Concierge (v2)</title>
+<style>
+  :root{
+    --ink: #2b1c22;
+    --plum: #4a1e2b;
+    --plum-deep: #2f1119;
+    --gold: #b8863f;
+    --gold-soft: #d9b874;
+    --cream: #f7f1e8;
+    --paper: #fffaf3;
+    --line: #e3d5bd;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Iowan Old Style','Georgia',serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding: 48px 20px 80px;
+  }
+  .wrap{ max-width: 720px; width:100%; }
+  .eyebrow{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 11px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  h1{
+    font-size: 40px;
+    margin: 0 0 6px;
+    color: var(--plum-deep);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .sub{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    color: #6b5a52;
+    margin-bottom: 36px;
+    max-width: 480px;
+    line-height: 1.5;
+  }
+  .panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 28px;
+    position: relative;
+  }
+  .panel::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--plum), var(--gold-soft));
+  }
+  label{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--plum-deep);
+    display:block;
+    margin-bottom: 10px;
+  }
+  textarea{
+    width:100%;
+    font-family: 'Iowan Old Style','Georgia',serif;
+    font-size: 17px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: #fff;
+    color: var(--ink);
+    resize: vertical;
+    min-height: 84px;
+  }
+  textarea:focus{ outline: 2px solid var(--gold); outline-offset: 1px; }
+  .examples{
+    margin-top: 12px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 12.5px;
+    color: #8a7768;
+  }
+  .examples button{
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    border-bottom: 1px dotted #b7a58f;
+    color: #6b5a52;
+    cursor: pointer;
+    padding: 2px 0;
+    margin-right: 14px;
+  }
+  .examples button:hover{ color: var(--plum); border-color: var(--plum); }
+
+  button.go{
+    margin-top: 18px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--plum-deep);
+    color: var(--cream);
+    border: none;
+    padding: 13px 26px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  button.go:disabled{ opacity: 0.5; cursor: default; }
+  button.go:not(:disabled):hover{ background: var(--plum); }
+
+  .results{ margin-top: 32px; min-height: 20px; }
+  .loading{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13px;
+    color: #8a7768;
+  }
+  .card{
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0;
+    display:flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items:flex-start;
+  }
+  .card:last-child{ border-bottom:none; }
+  .rank{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 22px;
+    color: var(--gold);
+    width: 30px;
+    flex-shrink:0;
+    padding-top:2px;
+  }
+  .card-main{ flex:1; }
+  .card-name{ font-size: 20px; color: var(--plum-deep); margin: 0 0 4px; }
+  .card-why{ font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; color: #7a6a5f; }
+  .empty-note{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    color: #8a5236;
+    background: #fbeee4;
+    border: 1px solid #eccdb2;
+    padding: 14px 16px;
+    border-radius: 2px;
+  }
+  .error-note{
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 13.5px;
+    color: #8a3636;
+    background: #fbe4e4;
+    border: 1px solid #eab2b2;
+    padding: 14px 16px;
+    border-radius: 2px;
+  }
+  footer{
+    margin-top: 40px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11.5px;
+    color: #a89684;
+    letter-spacing: 0.04em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Elixir Haven &nbsp;·&nbsp; Concierge (v2, understands open language)</div>
+  <h1>What are you looking for today?</h1>
+  <p class="sub">Describe the mood, occasion, or feeling you want, in your own words. This version reads full sentences rather than matching exact phrases.</p>
+
+  <div class="panel">
+    <label for="input">Tell the concierge what you want</label>
+    <textarea id="input" placeholder="e.g. something light for the office, or I dey see my babe tonight and I want strong scent"></textarea>
+    <div class="examples">
+      Try:
+      <button data-ex="something light for the office, nothing too loud">something light for the office</button>
+      <button data-ex="I dey attend owambe this weekend, need something bold">owambe, need something bold</button>
+      <button data-ex="I want to smell fresh after the gym but not too sweet">fresh after the gym, not sweet</button>
+    </div>
+    <button class="go" id="goBtn">Find matches</button>
+
+    <div class="results" id="results"></div>
+  </div>
+
+  <footer>Internal pilot tool for Elixir Haven &middot; Matches are read live by an AI model against the real catalog &middot; Not customer-facing yet</footer>
+</div>
+
+<script>
+const CATALOG_PLACEHOLDER = true;
+</script>
+<script>
+const CATALOG = [{"Product_ID": "EH017", "Product_Name": "212 VIP MEN", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Special/Statement, Evening", "Personality_Descriptor": "Trendy, energetic"}, {"Product_ID": "EH005", "Product_Name": "AZZARO MOST WANTED", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Magnetic, bold"}, {"Product_ID": "EH015", "Product_Name": "BACCARAT", "Gender_Category": "UNISEX", "Family_Group": "Floral, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Special/Statement, Evening", "Personality_Descriptor": "Radiant, addictive"}, {"Product_ID": "EH019", "Product_Name": "BLACK AFGANO", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Special/Statement, Evening", "Personality_Descriptor": "Intense, narcotic"}, {"Product_ID": "EH009", "Product_Name": "BLACK OUD", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Dark, intense"}, {"Product_ID": "EH021", "Product_Name": "BOMBSHELL", "Gender_Category": "UNISEX", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Bright, confident"}, {"Product_ID": "EH004", "Product_Name": "BVLGARI ROSE", "Gender_Category": "FEMALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Soft, radiant"}, {"Product_ID": "EH001", "Product_Name": "CHANEL NO5", "Gender_Category": "UNISEX", "Family_Group": "Floral", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Timeless, iconic"}, {"Product_ID": "EH018", "Product_Name": "CLUB DE NUIT", "Gender_Category": "UNISEX", "Family_Group": "Fruity, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Daily/Casual", "Personality_Descriptor": "Bold, Aventus-like"}, {"Product_ID": "EH003", "Product_Name": "COCO CHANEL", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Spicy, opulent"}, {"Product_ID": "EH011", "Product_Name": "CREED ADVENTUS", "Gender_Category": "MALE", "Family_Group": "Fruity, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal", "Personality_Descriptor": "Powerful, prestigious"}, {"Product_ID": "EH024", "Product_Name": "DARK OPIUM", "Gender_Category": "UNISEX", "Family_Group": "Gourmand, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Edgy, addictive"}, {"Product_ID": "EH014", "Product_Name": "FAHRENHEIT", "Gender_Category": "MALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Distinctive, iconic"}, {"Product_ID": "EH023", "Product_Name": "HUGO BOSS MAN", "Gender_Category": "MALE", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Dependable, classic"}, {"Product_ID": "EH020", "Product_Name": "LOVE SPELL", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Flirty, fresh"}, {"Product_ID": "EH006", "Product_Name": "MAD ABOUT YOU", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Flirty, warm"}, {"Product_ID": "EH008", "Product_Name": "OMBRE LEATHER", "Gender_Category": "MALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Raw, masculine"}, {"Product_ID": "EH016", "Product_Name": "ONE MILLION", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Flashy, seductive"}, {"Product_ID": "EH010", "Product_Name": "OUD BOUQUET", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Opulent, rosy-oud"}, {"Product_ID": "EH007", "Product_Name": "OUD SATIN MOOD", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Velvety, opulent"}, {"Product_ID": "EH012", "Product_Name": "PURE SEDUCTION", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Fresh, flirty"}, {"Product_ID": "EH022", "Product_Name": "ROMANTIC DESIRE", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Sweet, flirty"}, {"Product_ID": "EH002", "Product_Name": "SCANDALOUS", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Floral", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Provocative, radiant"}, {"Product_ID": "EH013", "Product_Name": "SUGAR BABY", "Gender_Category": "FEMALE", "Family_Group": "Gourmand", "Intensity_Group": "Moderate", "Occasion_Group": "Formal, Daily/Casual", "Personality_Descriptor": "House sweet gourmand blend"}, {"Product_ID": "EH025", "Product_Name": "TOBACCO VANILLE", "Gender_Category": "UNISEX", "Family_Group": "Gourmand, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Evening, Seasonal", "Personality_Descriptor": "Cozy, rich"}, {"Product_ID": "EH026", "Product_Name": "STRAWBERRY", "Gender_Category": "FEMALE", "Family_Group": "Fruity", "Intensity_Group": "Light", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Sweet, simple - house blend"}, {"Product_ID": "EH027", "Product_Name": "STRONGER WITH YOU", "Gender_Category": "MALE", "Family_Group": "Gourmand, Spicy", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Warm, approachable"}, {"Product_ID": "EH028", "Product_Name": "AMOUAGE INTERLUDE", "Gender_Category": "MALE", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Special/Statement, Formal", "Personality_Descriptor": "Smoky, intense"}, {"Product_ID": "EH029", "Product_Name": "INVICTUS", "Gender_Category": "MALE", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Athletic, victorious"}, {"Product_ID": "EH030", "Product_Name": "DUNHILL DESIRE", "Gender_Category": "MALE", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Warm, affordable-luxe"}, {"Product_ID": "EH031", "Product_Name": "OUD WOOD", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Smooth, luxurious"}, {"Product_ID": "EH032", "Product_Name": "IN LEATHER MAN", "Gender_Category": "MALE", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Rugged, elegant"}, {"Product_ID": "EH033", "Product_Name": "MUSK TAHARA", "Gender_Category": "UNISEX", "Family_Group": "Woody", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Clean, pure"}, {"Product_ID": "EH034", "Product_Name": "ARABIAN OUD", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Rich, traditional"}, {"Product_ID": "EH035", "Product_Name": "BVLGARI MEN IN BLACK", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Spicy", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Bold, sensual"}, {"Product_ID": "EH036", "Product_Name": "BLACK XS", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Woody, Spicy", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Edgy, rock-n-roll"}, {"Product_ID": "EH037", "Product_Name": "OMBRE NOMADE", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Special/Statement, Evening", "Personality_Descriptor": "Smoky, luxurious"}, {"Product_ID": "EH038", "Product_Name": "BURBERRY WOMEN", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Classic, feminine"}, {"Product_ID": "EH039", "Product_Name": "TAYLOR", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Whimsical, youthful"}, {"Product_ID": "EH040", "Product_Name": "STILL", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Serene, soft"}, {"Product_ID": "EH041", "Product_Name": "LIBRE", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Free-spirited, bold"}, {"Product_ID": "EH042", "Product_Name": "AMEER AL OUD", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Rich, traditional"}, {"Product_ID": "EH043", "Product_Name": "AMBER OUD", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, opulent"}, {"Product_ID": "EH044", "Product_Name": "YUM PISTACHIO", "Gender_Category": "FEMALE", "Family_Group": "Gourmand", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Sweet, indulgent"}, {"Product_ID": "EH045", "Product_Name": "RASHEEQA", "Gender_Category": "FEMALE", "Family_Group": "Floral, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Classic, dignified"}, {"Product_ID": "EH046", "Product_Name": "FUCKING FABULOUS", "Gender_Category": "UNISEX", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Strong", "Occasion_Group": "Special/Statement, Evening", "Personality_Descriptor": "Provocative, luxe"}, {"Product_ID": "EH047", "Product_Name": "HALFETI LEATHER", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Refined, smoky-leather"}, {"Product_ID": "EH048", "Product_Name": "GREEN IRISH TWEED", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Formal, Office", "Personality_Descriptor": "Classic, gentlemanly"}, {"Product_ID": "EH049", "Product_Name": "KASHKA", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Dark, mysterious"}, {"Product_ID": "EH050", "Product_Name": "TYGAR", "Gender_Category": "MALE", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, confident"}, {"Product_ID": "EH051", "Product_Name": "BLACK ORCHID", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Luxurious, mysterious"}, {"Product_ID": "EH052", "Product_Name": "BLACK OPIUM", "Gender_Category": "UNISEX", "Family_Group": "Gourmand, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Edgy, addictive"}, {"Product_ID": "EH053", "Product_Name": "MY WAY", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Modern, warm"}, {"Product_ID": "EH054", "Product_Name": "CHERRY BLOSSOM", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Delicate, fresh"}, {"Product_ID": "EH055", "Product_Name": "SAUVAGE DIOR", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Fresh/Citrus", "Intensity_Group": "Strong", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Rugged, crowd-pleasing"}, {"Product_ID": "EH056", "Product_Name": "TUSCAN LEATHER", "Gender_Category": "UNISEX", "Family_Group": "Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Raw, bold"}, {"Product_ID": "EH057", "Product_Name": "ESCADA TAJ SUNSET", "Gender_Category": "UNISEX", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Tropical, playful"}, {"Product_ID": "EH058", "Product_Name": "FARAWAY", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Exotic, warm"}, {"Product_ID": "EH059", "Product_Name": "SECRET CHARM", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Soft, charming"}, {"Product_ID": "EH060", "Product_Name": "GUCCI GUILTY", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Charismatic, modern"}, {"Product_ID": "EH061", "Product_Name": "ARMANI CODE", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Oriental/Amber, Spicy", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Seductive, classy"}, {"Product_ID": "EH062", "Product_Name": "HEAT RUSH", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Playful, warm"}, {"Product_ID": "EH063", "Product_Name": "COCO MADEMOISELLE", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Confident, elegant"}, {"Product_ID": "EH064", "Product_Name": "PLEASURE", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, cheerful"}, {"Product_ID": "EH065", "Product_Name": "ESCADA MOON SPARKLE", "Gender_Category": "UNISEX", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fruity, cheerful"}, {"Product_ID": "EH066", "Product_Name": "GUCCI RUSH WOMAN", "Gender_Category": "FEMALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Retro, sensual"}, {"Product_ID": "EH067", "Product_Name": "SENSUAL", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Sultry, curvy"}, {"Product_ID": "EH068", "Product_Name": "PURE WOMAN", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Clean, gentle"}, {"Product_ID": "EH069", "Product_Name": "BOSS ORANGE", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Warm, easy"}, {"Product_ID": "EH070", "Product_Name": "COOL WATER (BLUE ONE)", "Gender_Category": "MALE", "Family_Group": "Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, timeless"}, {"Product_ID": "EH071", "Product_Name": "NOIR EXTREME", "Gender_Category": "MALE", "Family_Group": "Gourmand, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Opulent, sweet-spicy"}, {"Product_ID": "EH072", "Product_Name": "LOVE IN BLACK", "Gender_Category": "UNISEX", "Family_Group": "Floral", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Powdery, mysterious"}, {"Product_ID": "EH073", "Product_Name": "RALPH LADY", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, breezy"}, {"Product_ID": "EH074", "Product_Name": "MIDNIGHT FANTASY", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Fruity", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Mysterious, sweet"}, {"Product_ID": "EH075", "Product_Name": "PINK SUGAR", "Gender_Category": "FEMALE", "Family_Group": "Gourmand", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Sweet, youthful"}, {"Product_ID": "EH076", "Product_Name": "MON PARIS", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Passionate, romantic"}, {"Product_ID": "EH077", "Product_Name": "LOVELY ARB", "Gender_Category": "FEMALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Understated, chic"}, {"Product_ID": "EH078", "Product_Name": "PINK CANDY", "Gender_Category": "FEMALE", "Family_Group": "Gourmand", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Decadent, playful"}, {"Product_ID": "EH079", "Product_Name": "SI ARMANI", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Woody", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Elegant, modern-chic"}, {"Product_ID": "EH080", "Product_Name": "ZAHARA SWISS", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Rich, ornate"}, {"Product_ID": "EH081", "Product_Name": "AQUA FOR HIM BY BVLGARI", "Gender_Category": "MALE", "Family_Group": "Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Marine, clean"}, {"Product_ID": "EH082", "Product_Name": "DECLARATION", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Understated, elegant"}, {"Product_ID": "EH083", "Product_Name": "AQUA KISS", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Floral, Fresh/Citrus", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, playful"}, {"Product_ID": "EH084", "Product_Name": "D&G LIGHT", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Fruity, Floral", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, breezy"}, {"Product_ID": "EH085", "Product_Name": "GUCCI RUSH MAN", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Moderate", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, retro"}, {"Product_ID": "EH086", "Product_Name": "NEW YORK", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Cosmopolitan, bold"}, {"Product_ID": "EH087", "Product_Name": "FLOWER BOMB", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Bold, feminine"}, {"Product_ID": "EH088", "Product_Name": "JOY", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Radiant, joyful"}, {"Product_ID": "EH089", "Product_Name": "BALENCIAGA", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Floral, Fresh/Citrus", "Intensity_Group": "Light-Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Quirky, green-floral"}, {"Product_ID": "EH090", "Product_Name": "212 MAN", "Gender_Category": "MALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Clean, urban"}, {"Product_ID": "EH091", "Product_Name": "HYPNOTIC POISON", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Hypnotic, seductive"}, {"Product_ID": "EH092", "Product_Name": "TOBACCO EXQUISITE", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, smoky"}, {"Product_ID": "EH093", "Product_Name": "MARRY ME", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Sweet, tender"}, {"Product_ID": "EH094", "Product_Name": "212 SEXY", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Sultry, sweet"}, {"Product_ID": "EH095", "Product_Name": "AQUA DI GIO", "Gender_Category": "MALE", "Family_Group": "Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, effortless"}, {"Product_ID": "EH096", "Product_Name": "MANGO TEMPTATION", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Fruity", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Juicy, playful"}, {"Product_ID": "EH097", "Product_Name": "NOIR MEN", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Spicy", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Refined, sophisticated"}, {"Product_ID": "EH098", "Product_Name": "LA VIE EST BELLE", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Fruity", "Intensity_Group": "Strong", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Joyful, elegant"}, {"Product_ID": "EH099", "Product_Name": "OLYMPEA", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Goddess-like, bold"}, {"Product_ID": "EH100", "Product_Name": "ESCADA CHERRY", "Gender_Category": "FEMALE", "Family_Group": "Gourmand, Fruity", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Playful, sweet"}, {"Product_ID": "EH101", "Product_Name": "POLO BLUE", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Fresh, easygoing"}, {"Product_ID": "EH102", "Product_Name": "J'ADORE", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Timeless, luminous"}, {"Product_ID": "EH103", "Product_Name": "ISSEY MIYAKE", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Moderate", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Fresh, clean"}, {"Product_ID": "EH104", "Product_Name": "JIMMY CHOO", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Woody", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Glamorous, sensual"}, {"Product_ID": "EH105", "Product_Name": "POLO RED", "Gender_Category": "MALE", "Family_Group": "Woody, Spicy", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Energetic, bold"}, {"Product_ID": "EH106", "Product_Name": "KOUROS", "Gender_Category": "MALE", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Bold, vintage-powerhouse"}, {"Product_ID": "EH107", "Product_Name": "FENDI", "Gender_Category": "FEMALE", "Family_Group": "Floral, Woody", "Intensity_Group": "Moderate", "Occasion_Group": "Evening", "Personality_Descriptor": "Elegant, retro"}, {"Product_ID": "EH108", "Product_Name": "TERRE DE HERMES", "Gender_Category": "MALE", "Family_Group": "Woody", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Office, Daily/Casual", "Personality_Descriptor": "Earthy, distinguished"}, {"Product_ID": "EH109", "Product_Name": "CENIMA", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Glamorous, feminine"}, {"Product_ID": "EH110", "Product_Name": "THE ONE", "Gender_Category": "MALE", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening, Office", "Personality_Descriptor": "Warm, gentlemanly"}, {"Product_ID": "EH111", "Product_Name": "GOOD GIRL", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Bold, dual-natured"}, {"Product_ID": "EH112", "Product_Name": "GUCCI BLOOM", "Gender_Category": "FEMALE", "Family_Group": "Floral", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Lush, romantic"}, {"Product_ID": "EH113", "Product_Name": "FLOWER BAKHOOR", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, floral-smoky"}, {"Product_ID": "EH114", "Product_Name": "FORBIDDEN ROSE", "Gender_Category": "NEEDS_VERIFICATION", "Family_Group": "Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Date night, Daily/Casual", "Personality_Descriptor": "Romantic, soft"}, {"Product_ID": "EH115", "Product_Name": "BLEU DE CHANEL", "Gender_Category": "MALE", "Family_Group": "Woody, Fresh/Citrus", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Special/Statement, Formal", "Personality_Descriptor": "Sophisticated, versatile"}, {"Product_ID": "EH116", "Product_Name": "VERSACE EROS", "Gender_Category": "MALE", "Family_Group": "Oriental/Amber, Fresh/Citrus", "Intensity_Group": "Strong", "Occasion_Group": "Date night, Evening", "Personality_Descriptor": "Bold, seductive"}, {"Product_ID": "EH117", "Product_Name": "SILVER MOUNTAIN WATER", "Gender_Category": "UNISEX", "Family_Group": "Fruity, Woody", "Intensity_Group": "Moderate", "Occasion_Group": "Seasonal, Daily/Casual", "Personality_Descriptor": "Fresh, airy"}, {"Product_ID": "EH118", "Product_Name": "PINK CHIFFON", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Soft, girly"}, {"Product_ID": "EH119", "Product_Name": "SEXY GRAVITY", "Gender_Category": "FEMALE", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Sultry, sweet"}, {"Product_ID": "EH120", "Product_Name": "PROVOCATIVE WOMEN", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Evening, Daily/Casual", "Personality_Descriptor": "Confident, warm"}, {"Product_ID": "EH121", "Product_Name": "VELVET ORCHID", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Lush, sensual"}, {"Product_ID": "EH122", "Product_Name": "VIVID IMAGINATION", "Gender_Category": "FEMALE", "Family_Group": "Fresh/Citrus", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Special/Statement, Daily/Casual", "Personality_Descriptor": "Bright, refined"}, {"Product_ID": "EH123", "Product_Name": "DANCING FEVER", "Gender_Category": "UNISEX", "Family_Group": "Floral, Oriental/Amber", "Intensity_Group": "Moderate-Strong", "Occasion_Group": "Evening", "Personality_Descriptor": "Warm, nostalgic"}, {"Product_ID": "EH124", "Product_Name": "SULTAN ILLUSION", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Opulent, exotic"}, {"Product_ID": "EH125", "Product_Name": "OUD FOR GREATNESS", "Gender_Category": "UNISEX", "Family_Group": "Woody, Oriental/Amber", "Intensity_Group": "Strong", "Occasion_Group": "Formal, Evening", "Personality_Descriptor": "Powerful, smoky"}, {"Product_ID": "EH126", "Product_Name": "RED BERRY", "Gender_Category": "FEMALE", "Family_Group": "Fruity, Floral", "Intensity_Group": "Moderate", "Occasion_Group": "Daily/Casual", "Personality_Descriptor": "Fruity, cheerful"}];
+
+</script>
+<script>
+const goBtn = document.getElementById('goBtn');
+const input = document.getElementById('input');
+const resultsEl = document.getElementById('results');
+
+function buildSystemPrompt(){
+  return `You are a fragrance matching assistant for Elixir Haven, a Nigerian fragrance business.
+You will be given a customer's free-text request and a catalog of products in JSON.
+Read the customer's intent carefully, including Nigerian English and Pidgin phrasing (e.g. "owambe" means a big Nigerian party/celebration, "e no go too much" means not too strong).
+
+Return ONLY valid JSON, no preamble, no markdown fences, in this exact shape:
+{
+  "understood": true or false,
+  "results": [
+    {"Product_ID": "...", "Product_Name": "...", "why": "one short plain-language reason, under 15 words"}
+  ]
+}
+
+Rules:
+- Pick at most 3 products from the catalog provided. Only use products that are actually in the catalog, never invent one.
+- Base picks on Family_Group, Intensity_Group, Occasion_Group, Gender_Category and Personality_Descriptor fields.
+- If the request is too vague to confidently match anything (e.g. just "hi"), set "understood": false and "results": [].
+- Never guess wildly. If you're only confident about 1 or 2 products, return fewer than 3 rather than padding with weak matches.
+- "why" should read naturally, like a shop assistant explaining a pick, not a data dump.
+
+Catalog:
+${JSON.stringify(CATALOG)}`;
+}
+
+async function callClaude(customerText){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: buildSystemPrompt(),
+      messages: [
+        { role: "user", content: `Customer request: "${customerText}"` }
+      ]
+    })
+  });
+
+  if(!response.ok){
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const textBlocks = data.content.filter(b => b.type === "text").map(b => b.text);
+  const raw = textBlocks.join("\n").trim();
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+  return JSON.parse(cleaned);
+}
+
+function renderResults(parsed){
+  if(!parsed.understood || parsed.results.length === 0){
+    resultsEl.innerHTML = `<div class="empty-note">No confident match found yet. Try describing the mood, occasion, or scent type a bit more.</div>`;
+    return;
+  }
+  let html = "";
+  parsed.results.forEach((r, i) => {
+    html += `<div class="card">
+      <div class="rank">${i+1}</div>
+      <div class="card-main">
+        <div class="card-name">${r.Product_Name}</div>
+        <div class="card-why">${r.why}</div>
+      </div>
+    </div>`;
+  });
+  resultsEl.innerHTML = html;
+}
+
+async function run(){
+  const text = input.value.trim();
+  if(!text) { resultsEl.innerHTML = ""; return; }
+
+  goBtn.disabled = true;
+  resultsEl.innerHTML = `<div class="loading">Reading your request against the catalog…</div>`;
+
+  try {
+    const parsed = await callClaude(text);
+    renderResults(parsed);
+  } catch (err) {
+    console.error("Concierge error:", err);
+    resultsEl.innerHTML = `<div class="error-note">Something went wrong reaching the matching model. Please try again in a moment.</div>`;
+  } finally {
+    goBtn.disabled = false;
+  }
+}
+
+goBtn.addEventListener('click', run);
+document.querySelectorAll('.examples button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    input.value = b.getAttribute('data-ex');
+    run();
+  });
+});
+input.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); run(); }
+});
+</script>
+</body>
+</html>
