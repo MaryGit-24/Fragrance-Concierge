@@ -233,27 +233,25 @@ Catalog:
 ${JSON.stringify(CATALOG)}`;
 }
 
-async function callClaude(customerText){
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+async function callMyModel(customerText){
+  const response = await fetch("http://102.217.1.107:8000/ask", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-Key": "YOUR_SECRET_KEY_HERE"
+    },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
       system: buildSystemPrompt(),
-      messages: [
-        { role: "user", content: `Customer request: "${customerText}"` }
-      ]
+      message: `Customer request: "${customerText}"`
     })
   });
 
   if(!response.ok){
-    throw new Error(`API error: ${response.status}`);
+    throw new Error(`Server error: ${response.status}`);
   }
 
   const data = await response.json();
-  const textBlocks = data.content.filter(b => b.type === "text").map(b => b.text);
-  const raw = textBlocks.join("\n").trim();
+  const raw = data.answer.trim();
   const cleaned = raw.replace(/```json|```/g, "").trim();
   return JSON.parse(cleaned);
 }
@@ -284,7 +282,7 @@ async function run(){
   resultsEl.innerHTML = `<div class="loading">Reading your request against the catalog…</div>`;
 
   try {
-    const parsed = await callClaude(text);
+    const parsed = await callMyModel;
     renderResults(parsed);
   } catch (err) {
     console.error("Concierge error:", err);
