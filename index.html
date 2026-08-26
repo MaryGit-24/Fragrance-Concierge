@@ -224,7 +224,7 @@ Return ONLY valid JSON, no preamble, no markdown fences, in this exact shape:
 
 Rules:
 - Pick at most 3 products from the catalog provided. Only use products that are actually in the catalog, never invent one.
-- Base picks on Family_Group, Intensity_Group, Occasion_Group, Gender_Category and Personality_Descriptor fields.
+- Base picks on Family_Group, Intensity_Group, Occasion_Group, and Gender_Category fields.
 - Everyday words map to catalog tags even when the wording differs. Use your judgment to connect ordinary phrasing to the closest catalog value, do not require an exact word match. For example: "office" or "work" -> Occasion_Group "Office"; "date" or "romantic" -> "Date night"; "party" or "event" -> "Special/Statement"; "light" or "subtle" -> Intensity_Group "Light" or "Light-Moderate"; "strong" or "noticeable" -> "Strong" or "Moderate-Strong".
 - Only set "understood": false when the message truly gives no usable signal at all (e.g. "hi", "ok", a random word). A request that names a mood, occasion, or intensity in plain language, even loosely, should be treated as understood.
 - If you're only confident about 1 or 2 products, return fewer than 3 rather than padding with weak matches, but do not withhold reasonable matches out of excess caution.
